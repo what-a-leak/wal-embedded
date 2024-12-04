@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
+#include "esp_dsp.h" // For digital processing like fft etc...
 #include "../lib/peripherals/imu/lsm6ds3.h"
 
 void app_main() {
