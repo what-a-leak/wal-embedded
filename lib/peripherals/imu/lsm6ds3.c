@@ -6,7 +6,7 @@ void init_lsm6ds3(i2c_port_t i2c_num) {
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (LSM6DS3_ADDR << 1) | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(cmd, CTRL1_XL, true);  // Address of CTRL1_XL register
-    i2c_master_write_byte(cmd, 0x60, true);      // 0x60 = 104Hz, ±2g, normal mode
+    i2c_master_write_byte(cmd, 0xA0, true);      // 0x60 = 6.66kHz, ±2g, normal mode
     i2c_master_stop(cmd);
     ESP_ERROR_CHECK(i2c_master_cmd_begin(i2c_num, cmd, 10 / portTICK_PERIOD_MS));
     i2c_cmd_link_delete(cmd);
