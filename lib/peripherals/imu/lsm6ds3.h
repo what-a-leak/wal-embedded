@@ -10,5 +10,6 @@
 
 void init_lsm6ds3(i2c_port_t i2c_num);
 void read_acceleration(i2c_port_t i2c_num, float *acc_x, float *acc_y, float *acc_z);
+void read_acceleration_z(i2c_port_t i2c_num, float *acc_z);
 
 #endif // LSM6DS3_H
