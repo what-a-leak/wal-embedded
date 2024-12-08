@@ -53,27 +53,37 @@ void fft_task() {
         fft(X, FFT_SIZE);
 
         // Display amplitude graphically with '*' characters Frequency : ****
-        printf("------------------------------------------------------------------\n");
-        for (int k = 0; k < FFT_SIZE / 2; k++) {
-            double frequency = (double)k * SAMPLE_RATE / FFT_SIZE;
+        // printf("------------------------------------------------------------------\n");
+        // for (int k = 0; k < FFT_SIZE / 2; k++) {
+        //     double frequency = (double)k * SAMPLE_RATE / FFT_SIZE;
+        //     if (frequency >= 50 && frequency <= 2000) {
+        //         double amplitude = cabs(X[k]);
+        //         printf("%6.1f Hz       | ", frequency);
+        //         for (int i = 0; i < amplitude; i += 100) {
+        //             printf("*");
+        //         }
+        //         printf("\n");
+        //     }
+        // }
+        // printf("------------------------------------------------------------------\n");    
+
+        double max_amplitude = 0;
+        double peak_frequency = 0;
+        for (int i = 0; i < FFT_SIZE / 2; i++) {
+            double frequency = (double)i * SAMPLE_RATE / FFT_SIZE;
             if (frequency >= 50 && frequency <= 2000) {
-                double amplitude = cabs(X[k]);
-                printf("%6.1f Hz       | ", frequency);
-                for (int i = 0; i < amplitude; i += 100) {
-                    printf("*");
+                double amplitude = cabs(X[i]);
+                if (amplitude > max_amplitude) {
+                    max_amplitude = amplitude;
+                    peak_frequency = frequency;
                 }
-                printf("\n");
             }
         }
-        printf("------------------------------------------------------------------\n");
-
-        
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        printf("Peak frequency : %.02fHz \r\n", peak_frequency);
     }
 }
 
 
 void app_main() {
-    xTaskCreate(fft_task, "fft_task", 12000, NULL, 5, NULL);
+    xTaskCreate(fft_task, "fft_task", 100000, NULL, 5, NULL);
 }
