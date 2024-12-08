@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "driver/i2c.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_dsp.h"
@@ -9,12 +10,20 @@
 
 void microphone_task(void *param)
 {
-    while (1) {
-        // Read sound level
-        float sound_level = inmp_read_sound_level();
-        printf("Sound Level (RMS): %.2f\n", sound_level);
+    uint64_t start_time = 0;
+    uint64_t end_time = 0;
 
-        vTaskDelay(pdMS_TO_TICKS(50)); // Short delay between readings
+    while (1) {
+        // Measure the time it takes to read the sound level using esp_timer_get_time()
+        // start_time = esp_timer_get_time();
+        // inmp_read_sound_level();
+        // end_time = esp_timer_get_time();
+        // printf("Time: %lld us\n", end_time - start_time);
+        
+
+        printf("Sound level: %.2f\n", inmp_read_sound_level());
+
+        // vTaskDelay(pdMS_TO_TICKS(1000)); // Short delay between readings
     }
 }
 

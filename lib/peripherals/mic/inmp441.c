@@ -54,3 +54,4 @@ float inmp_read_sound_level()
 
     return sqrt(sum / samples_read); // Return the RMS value
 }
+
