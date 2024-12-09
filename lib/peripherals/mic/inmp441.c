@@ -3,7 +3,7 @@
 #include "driver/i2s.h"
 #include "esp_log.h"
 
-static const char *TAG = "INMP";
+static const char *TAG = "INMP441";  
 
 void inmp_init(int gpio_sck, int gpio_sd, int gpio_ws, int sample_rate)
 {
@@ -55,3 +55,16 @@ float inmp_read_sound_level()
     return sqrt(sum / samples_read); // Return the RMS value
 }
 
+
+size_t inmp_read_raw_data(int16_t *buffer, size_t buffer_len)
+{
+    size_t bytes_read;
+
+    esp_err_t result = i2s_read(I2S_NUM, (void *)buffer, buffer_len, &bytes_read, portMAX_DELAY);
+    if (result != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read data from I2S: %s", esp_err_to_name(result));
+        return 0;
+    }
+
+    return bytes_read;
+}

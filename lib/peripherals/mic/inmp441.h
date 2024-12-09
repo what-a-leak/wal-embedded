@@ -1,11 +1,12 @@
 #ifndef INMP_H
 #define INMP_H
 
-#include <stddef.h> 
+#include <stddef.h>
+#include <stdint.h>
 
 #define I2S_NUM         I2S_NUM_0  // Default I2S port
 #define SAMPLE_RATE     44100      // Default sampling rate
-#define I2S_READ_LEN    128       // Default buffer length
+#define I2S_READ_LEN    1024       
 #define GPIO_SCK        1          // Default GPIO for SCK (BCK)
 #define GPIO_SD         2          // Default GPIO for SD
 #define GPIO_WS         3          // Default GPIO for WS (LRCLK)
@@ -15,5 +16,7 @@ void inmp_init(int gpio_sck, int gpio_sd, int gpio_ws, int sample_rate);
 
 // Read the sound level Root Mean Square (RMS) value
 float inmp_read_sound_level();
+
+size_t inmp_read_raw_data(int16_t *buffer, size_t buffer_len);
 
 #endif
