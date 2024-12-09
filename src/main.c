@@ -37,13 +37,26 @@ void process_fft(const int16_t *raw_data_buffer, size_t num_samples) {
     dsps_cplx2reC_fc32(y_cf, num_samples);
 
     // Compute magnitude (power spectrum)
+    float max_magnitude = -INFINITY;
+    int max_index = 0;
     for (int i = 0; i < num_samples / 2; i++) {
         y1_cf[i] = 10 * log10f((y_cf[i * 2 + 0] * y_cf[i * 2 + 0] + y_cf[i * 2 + 1] * y_cf[i * 2 + 1]) / num_samples);
+        if (y1_cf[i] > max_magnitude) {
+            max_magnitude = y1_cf[i];
+            max_index = i;
+        }
     }
+
+    // Calculate the frequency of the peak
+    float frequency_resolution = (float)SAMPLE_RATE / num_samples;
+    float peak_frequency = max_index * frequency_resolution;
 
     // Display spectrum
     printf("FFT Power Spectrum:\n");
-    dsps_view(y1_cf, num_samples / 2, 64, 10, -60, 40, '|');
+    // dsps_view(y1_cf, num_samples / 2, 64, 10, -60, 40, '|');
+
+    // Print the peak frequency
+    printf("Peak Frequency: %.2f Hz (Magnitude: %.2f dB)\n", peak_frequency, max_magnitude);
 }
 
 void simple_task() {
@@ -64,7 +77,7 @@ void simple_task() {
             printf("Insufficient data for FFT: %zu samples\n", num_samples);
         }
         
-        vTaskDelay(pdMS_TO_TICKS(100)); // Delay to prevent continuous output
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay to prevent continuous output
     }
 }
 
