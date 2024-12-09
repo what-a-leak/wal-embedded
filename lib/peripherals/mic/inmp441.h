@@ -6,7 +6,7 @@
 
 #define I2S_NUM         I2S_NUM_0  // Default I2S port
 #define SAMPLE_RATE     44100      // Default sampling rate
-#define I2S_READ_LEN    1024       
+#define I2S_READ_LEN    2048       
 #define GPIO_SCK        1          // Default GPIO for SCK (BCK)
 #define GPIO_SD         2          // Default GPIO for SD
 #define GPIO_WS         3          // Default GPIO for WS (LRCLK)
