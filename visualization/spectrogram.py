@@ -2,6 +2,7 @@ import serial
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import sys
 
 SERIAL_PORT = "/dev/ttyACM0"
 BAUD_RATE = 115200
@@ -70,5 +71,6 @@ try:
                 print(f"Error parsing data: {e}")
 except KeyboardInterrupt:
     print("Exiting...")
+    sys.exit(0)
 finally:
     ser.close()
