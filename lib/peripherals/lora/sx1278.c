@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "sx1278.h"
 
+static spi_device_handle_t sx1278_spi;
+
 void check_sx1278(void) {
     esp_err_t ret;
 
@@ -85,4 +87,97 @@ void check_sx1278(void) {
     }
 
     printf("SPI check completed.\n");
+}
+
+
+int sx1278_init(void) {
+    esp_err_t ret;
+
+    spi_bus_config_t buscfg = {
+        .miso_io_num = SX1278_PIN_NUM_MISO,
+        .mosi_io_num = SX1278_PIN_NUM_MOSI,
+        .sclk_io_num = SX1278_PIN_NUM_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 32
+    };
+
+    spi_device_interface_config_t devcfg = {
+        .clock_speed_hz = 1 * 1000 * 1000, // 1 MHz
+        .mode = 0,                         // SPI mode 0
+        .spics_io_num = SX1278_PIN_NUM_CS, // CS pin
+        .queue_size = 1,                   // Single transaction queue
+    };
+
+    // Initialize SPI bus
+    ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
+    if (ret != ESP_OK) {
+        printf("Failed to initialize SPI bus: %s\n", esp_err_to_name(ret));
+        return ret;
+    }
+
+    // Add the SX1278 device to the SPI bus
+    ret = spi_bus_add_device(SPI2_HOST, &devcfg, &sx1278_spi);
+    if (ret != ESP_OK) {
+        printf("Failed to add SX1278 to SPI bus: %s\n", esp_err_to_name(ret));
+        spi_bus_free(SPI2_HOST);
+        return ret;
+    }
+
+    printf("SX1278 initialized successfully.\n");
+    return ESP_OK;
+}
+
+int sx1278_send(uint8_t *data, size_t length) {
+    esp_err_t ret;
+    spi_transaction_t t = {
+        .length = length * 8, // Length in bits
+        .tx_buffer = data,
+        .rx_buffer = NULL, // No need to receive
+    };
+
+    printf("Sending data via SX1278...\n");
+    ret = spi_device_transmit(sx1278_spi, &t);
+    if (ret != ESP_OK) {
+        printf("Failed to send data: %s\n", esp_err_to_name(ret));
+        return ret;
+    }
+
+    printf("Data sent successfully.\n");
+    return ESP_OK;
+}
+
+int sx1278_receive(uint8_t *data, size_t length) {
+    esp_err_t ret;
+    spi_transaction_t t = {
+        .length = length * 8, // Length in bits
+        .tx_buffer = NULL,    // No data to send
+        .rx_buffer = data,
+    };
+
+    printf("Receiving data via SX1278...\n");
+    ret = spi_device_transmit(sx1278_spi, &t);
+    if (ret != ESP_OK) {
+        printf("Failed to receive data: %s\n", esp_err_to_name(ret));
+        return ret;
+    }
+
+    printf("Data received successfully.\n");
+    return ESP_OK;
+}
+
+void sx1278_cleanup(void) {
+    esp_err_t ret;
+
+    ret = spi_bus_remove_device(sx1278_spi);
+    if (ret != ESP_OK) {
+        printf("Failed to remove SX1278 device: %s\n", esp_err_to_name(ret));
+    }
+
+    ret = spi_bus_free(SPI2_HOST);
+    if (ret != ESP_OK) {
+        printf("Failed to free SPI bus: %s\n", esp_err_to_name(ret));
+    }
+
+    printf("SX1278 resources cleaned up successfully.\n");
 }

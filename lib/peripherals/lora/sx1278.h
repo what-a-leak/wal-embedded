@@ -13,4 +13,12 @@
 // Check SPI communication with SX1278
 void check_sx1278(void);
 
+int sx1278_init(void);
+
+int sx1278_send(uint8_t *data, size_t length);
+
+int sx1278_receive(uint8_t *data, size_t length);
+
+void sx1278_cleanup(void);
+
 #endif // SX1278_H

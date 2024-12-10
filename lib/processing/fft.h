@@ -6,7 +6,6 @@
 
 #define N_SAMPLES 1024
 
-
 // Initialize FFT library with configuration
 void fft_init(size_t num_samples);
 
