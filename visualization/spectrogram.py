@@ -23,7 +23,7 @@ cax = ax.imshow(
     spectrogram_data,
     extent=[0, MAX_DISPLAY_FREQ, 0, time_steps],
     aspect="auto",
-    cmap="viridis",
+    cmap="inferno", # viridis
     origin="lower",
 )
 fig.colorbar(cax, ax=ax, label="Amplitude (dB)")
