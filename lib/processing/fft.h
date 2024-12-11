@@ -15,4 +15,5 @@ void fft_process(const int16_t *raw_data_buffer, size_t num_samples);
 // Send FFT data to output for visualization
 void send_fft_data(const float *fft_data, size_t num_samples);
 
+
 #endif // FFT_H

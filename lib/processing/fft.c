@@ -40,8 +40,23 @@ void fft_process(const int16_t *raw_data_buffer, size_t num_samples) {
         y1_cf[i] = 10 * log10f((y_cf[i * 2 + 0] * y_cf[i * 2 + 0] + y_cf[i * 2 + 1] * y_cf[i * 2 + 1]) / num_samples);
     }
 
+    // Find the frequency with the maximum power and print it
+    float max_power = y1_cf[0];
+    int max_power_index = 0;
+    for (int i = 1; i < num_samples / 2; i++) {
+        if (y1_cf[i] > max_power) {
+            max_power = y1_cf[i];
+            max_power_index = i;
+        }
+    }
+    printf("Max power at frequency: %d Hz\n", max_power_index * 88200 / num_samples);
+
+
+
     // Send FFT data
-    send_fft_data(y1_cf, num_samples / 2);
+    // send_fft_data(y1_cf, num_samples / 2);
+    
+
 }
 
 void send_fft_data(const float *fft_data, size_t num_samples) {
