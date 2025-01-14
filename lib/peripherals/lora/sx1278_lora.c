@@ -207,20 +207,31 @@ int lora_received()
 int lora_receive_packet(uint8_t *buf, int size)
 {
     int irq = spi_read(REG_IRQ_FLAGS), len = 0;
+
+    /* Clear the IRQ flags */
     spi_write(REG_IRQ_FLAGS, irq);
 
-    /* Either CRC error or RX finished -> return len of 0 */
-    if((irq & IRQ_RX_DONE_MASK) == 0)
+    /* Either CRC error or RX not done -> return len of 0 */
+    if ((irq & IRQ_RX_DONE_MASK) == 0)
         return len;
-    if(irq & IRQ_PAYLOAD_CRC_ERROR_MASK)
+    if (irq & IRQ_PAYLOAD_CRC_ERROR_MASK)
         return len;
 
-    /* length of the packet*/
+    /* Length of the packet */
     len = spi_read(REG_RX_NB_BYTES);
 
-    /* Reading the data from the FIFO */
+    /* Set FIFO pointer to the current RX address */
+    uint8_t currentAddr = spi_read(REG_FIFO_RX_CURRENT_ADDR);
+    spi_write(REG_FIFO_ADDR_PTR, currentAddr);
+
+    /* Read the payload from the FIFO */
+    for (int i = 0; i < len && i < size; i++) {
+        buf[i] = spi_read(REG_FIFO);
+    }
+
     return len;
 }
+
 
 esp_err_t lora_send_packet(uint8_t *buf, int size)
 {
