@@ -41,22 +41,6 @@ void fft_process(const int16_t *raw_data_buffer, size_t num_samples, float *outp
     }
 }
 
-// decimate_fft function to fit the magnitude data into a specified number of bytes
-void decimate_fft(const float *fft_data, size_t num_samples, uint8_t *output_data, size_t output_size) {
-    // Find the maximum value in the FFT data
-    float max_value = -INFINITY;
-    for (int i = 0; i < num_samples; i++) {
-        if (fft_data[i] > max_value) {
-            max_value = fft_data[i];
-        }
-    }
-
-    // Scale the FFT data to fit into the output size
-    for (int i = 0; i < num_samples; i++) {
-        output_data[i] = (uint8_t)(255 * fft_data[i] / max_value);
-    }
-}
-
 void send_fft_data(const float *fft_data, size_t num_samples) {
     for (int i = 0; i < num_samples; i++) {
         printf("%.2f,", fft_data[i]);
@@ -64,9 +48,48 @@ void send_fft_data(const float *fft_data, size_t num_samples) {
     printf("\n");
 }
 
-void send_decimated_fft_data(const uint8_t *decimated_data, size_t output_size) {
-    for (int i = 0; i < output_size; i++) {
-        printf("%d,", decimated_data[i]);
+
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+
+void compress_fft(const float *fft_data, size_t num_samples, uint8_t *compressed_data, size_t compressed_size) {
+    // Vérifiez que compressed_size est suffisant pour encoder les données
+    if (compressed_size < 2) {
+        return; // Trop petit pour stocker quoi que ce soit
     }
-    printf("\n");
+
+    // Calcul des valeurs minimales et maximales pour normaliser
+    float min_val = FLT_MAX;
+    float max_val = -FLT_MAX;
+    for (size_t i = 0; i < num_samples; i++) {
+        if (fft_data[i] < min_val) min_val = fft_data[i];
+        if (fft_data[i] > max_val) max_val = fft_data[i];
+    }
+
+    // Encode l'échelle (min et max) dans les deux premiers octets
+    compressed_data[0] = (uint8_t)((min_val + 128) * 2); // Assure la conversion en plage [0-255]
+    compressed_data[1] = (uint8_t)((max_val + 128) * 2);
+
+    // Compression des données FFT restantes
+    for (size_t i = 0; i < compressed_size - 2; i++) {
+        size_t index = i * num_samples / (compressed_size - 2); // Rééchantillonnage
+        float normalized_value = (fft_data[index] - min_val) / (max_val - min_val); // Normalisation [0-1]
+        compressed_data[i + 2] = (uint8_t)(normalized_value * 255); // Compression dans [0-255]
+    }
+}
+
+
+void send_compressed_fft_data(const uint8_t *compressed_data, size_t compressed_size) {
+    // Convertir les données compressées en une chaîne de caractères hexadécimaux
+    char buffer[compressed_size * 2 + 2];
+    for (size_t i = 0; i < compressed_size; i++) {
+        snprintf(&buffer[i * 2], 3, "%02X", compressed_data[i]);
+    }
+
+    // Ajouter une fin de ligne pour délimiter les messages
+    strcat(buffer, "\n");
+
+    // Envoyer les données sur la sortie série (exemple)
+    printf("%s", buffer);
 }

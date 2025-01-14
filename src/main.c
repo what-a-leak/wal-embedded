@@ -70,7 +70,7 @@ void compute_fft_task() {
 
     int16_t raw_data_buffer[N_SAMPLES];
     float magnitude_data[N_SAMPLES / 2];
-    uint8_t decimated_output_data[32];
+    uint8_t decimated_output_data[20];
 
     // Initialize microphone and FFT
     inmp_init(GPIO_SCK, GPIO_SD, GPIO_WS, SAMPLE_RATE);
@@ -82,8 +82,8 @@ void compute_fft_task() {
 
         if (num_samples == N_SAMPLES) {
             fft_process(raw_data_buffer, num_samples, magnitude_data); // Perform FFT on the data and store the magnitude
-            decimate_fft(magnitude_data, num_samples / 2, decimated_output_data, 32); // Decimate the FFT data to fit into 23 bytes
-            send_decimated_fft_data(decimated_output_data, 32); // Send the decimated FFT data
+            compress_fft(magnitude_data, num_samples / 2, decimated_output_data, 20); // Compress the magnitude data
+            send_compressed_fft_data(decimated_output_data, 20); // Send the compressed data
             
             // send_fft_data(magnitude_data, num_samples / 2);
         } else {

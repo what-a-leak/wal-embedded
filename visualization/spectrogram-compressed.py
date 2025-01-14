@@ -5,23 +5,26 @@ from matplotlib.animation import FuncAnimation
 
 SERIAL_PORT = "/dev/ttyACM0"
 BAUD_RATE = 115200
+COMPRESSED_SIZE = 20
 NUM_SAMPLES = 1024
 SAMPLE_RATE = 88200
 MAX_DISPLAY_FREQ = 22000
-DECIMATED_SIZE = 32  # Adjust this value based on the decimated output size
 
-frequencies = np.linspace(0, MAX_DISPLAY_FREQ, DECIMATED_SIZE)
+frequencies = np.linspace(0, SAMPLE_RATE / 2, NUM_SAMPLES // 2)
+freq_limit_idx = int((MAX_DISPLAY_FREQ / (SAMPLE_RATE / 2)) * (NUM_SAMPLES // 2))
+frequencies = frequencies[:freq_limit_idx]
+
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE)
 
 time_steps = 100
-spectrogram_data = np.zeros((time_steps, DECIMATED_SIZE))
+spectrogram_data = np.zeros((time_steps, freq_limit_idx))
 
 fig, ax = plt.subplots()
 cax = ax.imshow(
     spectrogram_data,
     extent=[0, MAX_DISPLAY_FREQ, 0, time_steps],
     aspect="auto",
-    cmap="inferno",  # viridis
+    cmap="inferno",
     origin="lower",
 )
 fig.colorbar(cax, ax=ax, label="Amplitude (dB)")
@@ -32,13 +35,33 @@ ax.set_title("Audio Spectrogram")
 dynamic_min = None
 dynamic_max = None
 
+def decompress_fft(compressed_data):
+    """Décompresse les données FFT."""
+    if len(compressed_data) != COMPRESSED_SIZE:
+        raise ValueError(f"Invalid compressed data size: {len(compressed_data)}")
+
+    # Récupération de min_val et max_val
+    min_val = (compressed_data[0] / 2) - 128
+    max_val = (compressed_data[1] / 2) - 128
+
+    # Décompression des données normalisées
+    fft_data = np.array(compressed_data[2:], dtype=np.float32) / 255.0
+    fft_data = fft_data * (max_val - min_val) + min_val
+
+    return fft_data
+
 def read_serial_data():
     global dynamic_min, dynamic_max
     while ser.in_waiting:
         try:
-            data = ser.readline().decode().strip()
-            fft_data = np.array([float(x) for x in data.split(",") if x])
-            if len(fft_data) != DECIMATED_SIZE:
+            # Lire une ligne de données hexadécimales
+            line = ser.readline().decode().strip()
+            compressed_data = [int(line[i:i+2], 16) for i in range(0, len(line), 2)]
+
+            # Décompresser les données FFT
+            fft_data = decompress_fft(compressed_data)
+
+            if len(fft_data) != freq_limit_idx:
                 print(f"Unexpected FFT data length: {len(fft_data)}")
                 return None
 
