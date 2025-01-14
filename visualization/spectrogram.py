@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-SERIAL_PORT = "/dev/ttyACM0"
+SERIAL_PORT = "/dev/ttyACM1"
 BAUD_RATE = 115200
 NUM_SAMPLES = 1024
 SAMPLE_RATE = 88200
