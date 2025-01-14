@@ -1,2 +1,3 @@
 # wal_embedded
-Embedded program for the nodes/transceiver of the What A Leak product.
+
+EPS32C3 based node embedded software for What a Leak project. 
