@@ -69,6 +69,8 @@ void compute_fft_task() {
     esp_task_wdt_delete(NULL);
 
     int16_t raw_data_buffer[N_SAMPLES];
+    float magnitude_data[N_SAMPLES / 2];
+    uint8_t decimated_output_data[32];
 
     // Initialize microphone and FFT
     inmp_init(GPIO_SCK, GPIO_SD, GPIO_WS, SAMPLE_RATE);
@@ -79,8 +81,11 @@ void compute_fft_task() {
         size_t num_samples = bytes / sizeof(int16_t);
 
         if (num_samples == N_SAMPLES) {
-            fft_process(raw_data_buffer, num_samples); // Perform FFT on the data
+            fft_process(raw_data_buffer, num_samples, magnitude_data); // Perform FFT on the data and store the magnitude
+            decimate_fft(magnitude_data, num_samples / 2, decimated_output_data, 32); // Decimate the FFT data to fit into 23 bytes
+            send_decimated_fft_data(decimated_output_data, 32); // Send the decimated FFT data
             
+            // send_fft_data(magnitude_data, num_samples / 2);
         } else {
             printf("Insufficient data for FFT: %zu samples\n", num_samples);
         }
@@ -127,7 +132,7 @@ void receive_task() {
 
 void app_main() {
     xTaskCreate(compute_fft_task, "compute_fft_task", 12000, NULL, 5, NULL);
-    // xTaskCreate(send_task, "send_task", 4000, NULL, 5, NULL); 
+    xTaskCreate(send_task, "send_task", 4000, NULL, 5, NULL); 
     // xTaskCreate(receive_task, "receive_task", 4000, NULL, 5, NULL);
 }
 
