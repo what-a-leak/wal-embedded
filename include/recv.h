@@ -4,5 +4,6 @@
 #include "protocol.h"
 
 void recv_task();
+void send_mqtt();
 
 #endif //HEADER_DEMO_SEND

@@ -17,7 +17,7 @@ typedef struct {
     uint32_t timestamp;
     uint8_t battery_level;
     uint8_t temperature;
-    uint8_t reduced_fft[23]; // 184 bits / 8 bits per byte = 23 bytes
+    uint8_t reduced_fft[128]; // 184 bits / 8 bits per byte = 23 bytes
 } payload_t;
 
 #endif //HEADER_DEMO_PROTOCOL
