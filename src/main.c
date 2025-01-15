@@ -3,6 +3,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_sleep.h"
 #include "esp_timer.h"
 #include "esp_task_wdt.h"
 #include "esp_dsp.h"
@@ -12,10 +13,11 @@
 #include "../lib/peripherals/lora/sx1278_lora.h"
 
 // Configuration: Uncomment one of the following lines to select the operation scenario
-#define SCENARIO_LORA_SEND
+// #define SCENARIO_LORA_SEND
 // #define SCENARIO_LORA_RECEIVE
 // #define SCENARIO_FFT_COMPUTE
 // #define SCENARIO_IDLE
+#define SCENARIO_DEEP_SLEEP
 
 // LoRa Configuration
 #define CODING_RATE         8   // CR = 4/8
@@ -27,6 +29,20 @@
 static const char* _packet = "Hello World!";
 static uint32_t _count = 0;
 static uint8_t _rx_buff[MAX_PACKET_SIZE] = {0};
+
+// Deep Sleep Task
+#define DEEP_SLEEP_DURATION_SEC 60  // Sleep for 60 seconds
+
+void deep_sleep_task() {
+    printf("Entering Deep Sleep mode in 5 seconds...\n");
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    printf("Preparing for Deep Sleep...\n");
+    esp_sleep_enable_timer_wakeup(DEEP_SLEEP_DURATION_SEC * 1000000ULL);
+    printf("The system will now enter Deep Sleep for %d seconds.\n", DEEP_SLEEP_DURATION_SEC);
+
+    esp_deep_sleep_start();
+}
 
 // LoRa Send Task
 void send_task() {
@@ -132,6 +148,8 @@ void app_main() {
     xTaskCreate(fft_task, "fft_task", 12000, NULL, 5, NULL);
 #elif defined(SCENARIO_IDLE)
     xTaskCreate(idle_task, "idle_task", 12000, NULL, 5, NULL);
+#elif defined(SCENARIO_DEEP_SLEEP)
+    xTaskCreate(deep_sleep_task, "deep_sleep_task", 12000, NULL, 5, NULL);
 #else
     #error "No operation scenario defined. Please define one."
 #endif
