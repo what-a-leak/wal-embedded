@@ -3,12 +3,26 @@
 EPS32C3 based node embedded software for What a Leak project. 
 
 
-Todo:
+## Todo List
 
 - [x] Gather raw microphone data
 - [x] Perform FFT on microphone data
 - [ ] Construct Payload
 - [ ] Transmit Payload via LoRa
 
+## Choose the mode of the node
 
+Simply modify the [`platformio.ini`](platformio.ini) file definition for the following line:
 
+### Master Mode
+```
+build_flags = 
+	-I include
+	-D MASTER_NODE
+```
+
+### Node Mode
+```
+build_flags = 
+	-I include
+```
