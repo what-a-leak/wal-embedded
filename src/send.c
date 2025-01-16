@@ -5,9 +5,11 @@
 #include <esp_task_wdt.h>
 #include <esp_dsp.h>
 #include <math.h>
+#include <string.h>
 
 #include "../lib/peripherals/mic/inmp441.h"
 #include "../lib/processing/fft.h"
+#include "../lib/utils/encrypt.h"
 
 void send_task() {
     lora_init();
@@ -65,5 +67,39 @@ void compute_fft_task() {
         }
 
         vTaskDelay(pdMS_TO_TICKS(10)); // Delay to prevent continuous output
+    }
+}
+
+void test_encryption_task() {
+    const char *test_message = "Hello World";
+    uint8_t encrypted_data[MAX_PAYLOAD_SIZE];
+    size_t encrypted_len;
+
+    char decrypted_data[MAX_PAYLOAD_SIZE];
+    size_t decrypted_len;
+
+    while (1) {
+        printf("\n[Encryption test] Original Message: %s\n", test_message);
+
+        if (encrypt_message(test_message, strlen(test_message), encrypted_data, &encrypted_len) == 0) {
+            printf("[Encryption test] Encrypted Data:\n");
+            for (size_t i = 0; i < encrypted_len; i++) {
+                printf("%02x ", encrypted_data[i]);
+            }
+            printf("\n");
+        } else {
+            printf("[Encryption test] Encryption failed\n");
+            break;
+        }
+
+        if (decrypt_message(encrypted_data, encrypted_len, decrypted_data, &decrypted_len) == 0) {
+            decrypted_data[decrypted_len] = '\0'; // \0 end the message
+            printf("[Encryption test] Decrypted Message: %s\n", decrypted_data);
+        } else {
+            printf("[Encryption test] Decryption failed\n");
+            break;
+        }
+
+        vTaskDelay(4200 / portTICK_PERIOD_MS);
     }
 }

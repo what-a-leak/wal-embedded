@@ -7,5 +7,6 @@
 
 void send_task();
 void compute_fft_task();
+void test_encryption_task();
 
 #endif //HEADER_DEMO_SEND

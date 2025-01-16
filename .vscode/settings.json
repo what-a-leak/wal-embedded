@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "task.h": "c"
+        "task.h": "c",
+        "protocol.h": "c",
+        "send.h": "c"
     }
 }
