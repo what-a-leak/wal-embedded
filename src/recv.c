@@ -22,9 +22,9 @@
 
 static uint8_t _rx_buff[MAX_PACKET_SIZE] = {0};
 payload_t _payload_buff = {0};
-
 static const char *TAG = "wifi_connect";
 esp_ip4_addr_t static_addr;
+static int32_t _count = 0;
 
 // Event handler for Wi-Fi events
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
@@ -81,20 +81,31 @@ void wifi_init_sta(void)
 void send_mqtt()
 {
     printf("Starting Wi-Fi Init...\n");
+    screen_log("Wi-Fi: Conn...");
     wifi_init_sta();
     printf("Wi-Fi OK!\n");
+    screen_log("Wi-Fi: OK!");
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     printf("MQTT init...\n");
+    screen_log("MQTT: Conne...");
     mqtt_init(BROKER_URI);
+    screen_log("MQTT: OK!");
+
     while (1)
     {
-        mqtt_publish(TOPIC,"Hello from ESP32");
-        int status = -1;
-        while(status == -1) {
-            status = mqtt_check_publish();
-            vTaskDelay(200 / portTICK_PERIOD_MS);
+        if(_payload_buff.header == 0x01)
+        {
+            mqtt_publish(TOPIC,"Hello from ESP32");
+            int status = -1;
+            while(status == -1) {
+                status = mqtt_check_publish();
+                vTaskDelay(200 / portTICK_PERIOD_MS);
+            }
+            printf("Published successfully with id: %d!\n", status);
+            screen_log("[%d]MQTT: pub", _count);
+            _payload_buff.header = 0x0;
         }
-        printf("Published successfully with id: %d!\n", status);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
@@ -131,11 +142,15 @@ void recv_task()
                     printf("0x%02X ", _payload_buff.reduced_fft[i]);
                 }
                 printf("\n");
+                screen_log("LoRa: data OK");
             }
             else
             {
                 printf("Received packet size does not match payload size\n");
             }
+        }
+        else {
+            printf("Received no data :(\n");
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }

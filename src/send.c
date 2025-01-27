@@ -25,6 +25,7 @@ static const payload_t _payload = {
     .temperature = 0x14,
     .reduced_fft = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16}
 };
+static int32_t _count = 0;
 
 void send_task() {
     lora_init();
@@ -39,13 +40,14 @@ void send_task() {
 
         if (err == ESP_OK) {
             printf("LoRa: Payload Sent\n");
-            screen_log("LoRa: s[%d]", sizeof(payload_t));
+            screen_log("[%d]LoRa: send", _count);
         } else {
             printf("LoRa: Failed to Send Payload\n");
             screen_log("LoRa: FAILED");
         }
         // ToA = 0.7 seconds -> 10% duty cycle for 433 MHz
         vTaskDelay(7000 / portTICK_PERIOD_MS);
+        _count++;
     }
 }
 
