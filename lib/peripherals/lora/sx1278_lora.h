@@ -3,10 +3,8 @@
 
 #include <esp_err.h>
 
-#define DEBUG_WAL
-
 #ifdef DEBUG_WAL
-#include "logger.h"
+#include "../screen/logger.h"
 #define WAL_PRINT(...)  screen_log(__VA_ARGS__)   
 #else
 #define WAL_PRINT(...)

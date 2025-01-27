@@ -1,21 +1,27 @@
 #include "recv.h"
-#include "../lib/hal/mqtt.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 #include <esp_wifi.h>
 #include <nvs_flash.h>
-
 #include <esp_err.h>
 #include <esp_log.h>
 #include <esp_event.h>
 #include <esp_mac.h>
 
+#include "../lib/hal/mqtt.h"
+#ifndef USE_SCREEN
+#define screen_log(...)
+#else
+#include "../lib/peripherals/screen/logger.h"
+#endif
+
 #define WIFI_SSID "androyoyo"   // AP SSID
 #define WIFI_PASS "cesthonteux" // AP Password
 
 static uint8_t _rx_buff[MAX_PACKET_SIZE] = {0};
+payload_t _payload_buff = {0};
 
 static const char *TAG = "wifi_connect";
 esp_ip4_addr_t static_addr;
@@ -113,16 +119,16 @@ void recv_task()
 
             if (len == sizeof(payload_t))
             {
-                payload_t *received_payload = (payload_t *)_rx_buff;
-                printf("Header: 0x%02X\n", received_payload->header);
-                printf("Node ID: 0x%04X\n", received_payload->node_id);
-                printf("Timestamp: 0x%08lX\n", received_payload->timestamp);
-                printf("Battery Level: 0x%02X\n", received_payload->battery_level);
-                printf("Temperature: 0x%02X\n", received_payload->temperature);
+                protocol_set_payload(&_payload_buff, _rx_buff);
+                printf("Header: 0x%02X\n", _payload_buff.header);
+                printf("Node ID: 0x%04X\n", _payload_buff.node_id);
+                printf("Timestamp: 0x%08lX\n", _payload_buff.timestamp);
+                printf("Battery Level: 0x%02X\n", _payload_buff.battery_level);
+                printf("Temperature: 0x%02X\n", _payload_buff.temperature);
                 printf("Reduced FFT: ");
-                for (int i = 0; i < sizeof(received_payload->reduced_fft); i++)
+                for (int i = 0; i < sizeof(_payload_buff.reduced_fft); i++)
                 {
-                    printf("0x%02X ", received_payload->reduced_fft[i]);
+                    printf("0x%02X ", _payload_buff.reduced_fft[i]);
                 }
                 printf("\n");
             }

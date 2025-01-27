@@ -10,6 +10,11 @@
 #include "../lib/peripherals/mic/inmp441.h"
 #include "../lib/processing/fft.h"
 #include "../lib/utils/encrypt.h"
+#ifndef USE_SCREEN
+#define screen_log(...)
+#else
+#include "../lib/peripherals/screen/logger.h"
+#endif
 
 void send_task() {
     lora_init();

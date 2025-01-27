@@ -20,4 +20,9 @@ typedef struct {
     uint8_t reduced_fft[128]; // 184 bits / 8 bits per byte = 23 bytes
 } payload_t;
 
+static inline void protocol_set_payload(payload_t *p, uint8_t *data) {
+    payload_t *temp = (payload_t *)data;
+    *p = *temp;
+}
+
 #endif //HEADER_DEMO_PROTOCOL

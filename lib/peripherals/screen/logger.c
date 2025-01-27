@@ -1,4 +1,5 @@
 #include "logger.h"
+#include "screen.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -44,8 +45,9 @@ void screen_log(const char *format, ...)
     // _filled_log (0-6) : filling screen, (7): removing last log, updating
     _filled_log = (_filled_log > MAX_LOG) ? MAX_LOG+1 : _filled_log+1;
 
-    printf("\033[H\033[J"); // Clear the console
+    screen_clear();
     // Loop between the filled log or the max log that could be printed
     for (uint8_t i = 0; (i < MAX_LOG) && (i < _filled_log); i++)
-        printf("%s\n", _log[i]);
+        screen_draw(i, _log[i], CHAR_LIMIT);
+    screen_update();
 }
