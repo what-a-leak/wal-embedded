@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifndef DISABLE_SECURITY
+
 #define AES_KEY_SIZE 16       // AES-128 = 16 bytes
 #define IV_STATIC_SIZE 14     // Static portion of IV
 #define IV_DYNAMIC_SIZE 2     // Dynamic portion of IV
@@ -35,4 +37,5 @@ int encrypt_message(const char *message, size_t message_len, uint8_t *encrypted_
  */
 int decrypt_message(const uint8_t *encrypted_data, size_t encrypted_len, char *decrypted_data, size_t *decrypted_len);
 
+#endif // DISABLE_SECURITY
 #endif // ENCRYPT_H

@@ -7,6 +7,9 @@
 
 void send_task();
 void compute_fft_task();
+
+#ifndef DISABLE_SECURITY
 void test_encryption_task();
+#endif // DISABLE_SECURITY
 
 #endif //HEADER_DEMO_SEND

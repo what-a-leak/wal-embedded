@@ -1,7 +1,9 @@
+#ifndef DISABLE_SECURITY
+
 #include "encrypt.h"
 #include <string.h>
 #include <stdlib.h>
-#include "aes.h" // TinyAES library: https://github.com/kokke/tiny-AES-c
+// #include "aes.h" // TinyAES library: https://github.com/kokke/tiny-AES-c
 
 const uint8_t shared_key[AES_KEY_SIZE] = {
     0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
@@ -88,3 +90,5 @@ int decrypt_message(const uint8_t *encrypted_data, size_t encrypted_len, char *d
 
     return 0;
 }
+
+#endif // DISABLE_SECURITY

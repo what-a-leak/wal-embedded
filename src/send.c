@@ -70,6 +70,7 @@ void compute_fft_task() {
     }
 }
 
+#ifndef DISABLE_SECURITY
 void test_encryption_task() {
     const char *test_message = "Hello World";
     uint8_t encrypted_data[MAX_PAYLOAD_SIZE];
@@ -103,3 +104,4 @@ void test_encryption_task() {
         vTaskDelay(4200 / portTICK_PERIOD_MS);
     }
 }
+#endif
