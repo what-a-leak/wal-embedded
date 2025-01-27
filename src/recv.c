@@ -11,6 +11,7 @@
 #include <esp_mac.h>
 
 #include "../lib/hal/mqtt.h"
+#include "../lib/utils/json.h"
 #ifndef USE_SCREEN
 #define screen_log(...)
 #else
@@ -95,7 +96,7 @@ void send_mqtt()
     {
         if(_payload_buff.header == 0x01)
         {
-            mqtt_publish(TOPIC,"Hello from ESP32");
+            mqtt_publish(TOPIC,json_get(_payload_buff));
             int status = -1;
             while(status == -1) {
                 status = mqtt_check_publish();
@@ -104,6 +105,7 @@ void send_mqtt()
             printf("Published successfully with id: %d!\n", status);
             screen_log("[%d]MQTT: pub", _count);
             _payload_buff.header = 0x0;
+            _count++;
         }
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
