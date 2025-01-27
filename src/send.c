@@ -4,6 +4,7 @@
 #include <esp_timer.h>
 #include <esp_task_wdt.h>
 #include <esp_dsp.h>
+#include <esp_random.h>
 #include <math.h>
 #include <string.h>
 
@@ -17,7 +18,7 @@
 #endif
 
 // Dummy payload
-static const payload_t _payload = {
+static payload_t _payload = {
     .header = 0x01,
     .node_id = 0x0001,
     .timestamp = 0x00000001,
@@ -36,6 +37,10 @@ void send_task() {
     lora_set_spreading_factor(SPREADING_FACTOR);
 
     while (1) {
+        // Generating random numbers
+        _payload.timestamp = esp_random();
+        _payload.reduced_fft[0] = (uint8_t)(esp_random()%UINT8_MAX);
+        _payload.temperature = (uint8_t)(esp_random()%UINT8_MAX);
         esp_err_t err = lora_send_packet((uint8_t*)(&_payload), sizeof(payload_t));
 
         if (err == ESP_OK) {
