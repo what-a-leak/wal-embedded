@@ -6,8 +6,8 @@
 
 // Constants for LoRa Communication
 #define CODING_RATE         8   // CR = 4/8
-#define BANDWIDTH           6   // 62.5 kHz from the datasheet
-#define SPREADING_FACTOR    12  // 4096 chirps: SF12
+#define BANDWIDTH           7   // 125 kHz from the datasheet
+#define SPREADING_FACTOR    10  // SF10
 #define MAX_PACKET_SIZE     256
 
 // Payload structure: Header (8 bit), Node ID (16 bit), Timestamp (32 bit), Battery Level (8 bit), Temperature (8 bit), Reduced_FFT (184 bit)

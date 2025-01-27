@@ -16,6 +16,16 @@
 #include "../lib/peripherals/screen/logger.h"
 #endif
 
+// Dummy payload
+static const payload_t _payload = {
+    .header = 0x01,
+    .node_id = 0x0001,
+    .timestamp = 0x00000001,
+    .battery_level = 0x20,
+    .temperature = 0x14,
+    .reduced_fft = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16}
+};
+
 void send_task() {
     lora_init();
     lora_set_frequency(433e6);
@@ -24,25 +34,18 @@ void send_task() {
     lora_set_bandwidth(BANDWIDTH);
     lora_set_spreading_factor(SPREADING_FACTOR);
 
-    // Dummy payload
-    payload_t payload = {
-        .header = 0x01,
-        .node_id = 0x0001,
-        .timestamp = 0x00000001,
-        .battery_level = 0x20,
-        .temperature = 0x14,
-        .reduced_fft = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16}
-    };
-
     while (1) {
-        esp_err_t err = lora_send_packet((uint8_t*)&payload, sizeof(payload));
+        esp_err_t err = lora_send_packet((uint8_t*)(&_payload), sizeof(payload_t));
 
         if (err == ESP_OK) {
-            // printf("LoRa: Payload Sent\n");
+            printf("LoRa: Payload Sent\n");
+            screen_log("LoRa: s[%d]", sizeof(payload_t));
         } else {
-            // printf("LoRa: Failed to Send Payload\n");
+            printf("LoRa: Failed to Send Payload\n");
+            screen_log("LoRa: FAILED");
         }
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // ToA = 0.7 seconds -> 10% duty cycle for 433 MHz
+        vTaskDelay(7000 / portTICK_PERIOD_MS);
     }
 }
 
