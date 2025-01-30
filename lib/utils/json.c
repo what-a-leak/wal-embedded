@@ -8,10 +8,10 @@ static char _json[256];
 char *json_get(payload_t p)
 {
     char temp[5];
-    char measure_str[5*20];
-    for (int i = 0; i < 20; i++)
+    char measure_str[5*22];
+    for (int i = 0; i < 22; i++)
     {
-        sprintf(temp, "%d%c", p.reduced_fft[i], i == 19 ? 0 : ',');
+        sprintf(temp, "%d%c", p.reduced_fft[i], i == 21 ? 0 : ',');
         strcat(measure_str, temp);
     }
 
