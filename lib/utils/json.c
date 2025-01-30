@@ -1,12 +1,14 @@
 #include "json.h"
 
+#include <string.h>
+
 // From 'test.json' -> size cannot excess 92 bytes for now
-static char _json[128];
+static char _json[256];
 
 char *json_get(payload_t p)
 {
-    char temp[4];
-    char measure_str[128];
+    char temp[5];
+    char measure_str[5*20];
     for (int i = 0; i < 20; i++)
     {
         sprintf(temp, "%d%c", p.reduced_fft[i], i == 19 ? 0 : ',');
