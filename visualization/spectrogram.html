@@ -1,0 +1,38 @@
+<canvas id="fftChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function decompressFFT(compressedData) {
+        return compressedData.map(value => {
+            let normValue = value / 255.0;
+            return Math.expm1(normValue * Math.log1p(1.0)) * 100;
+        });
+    }
+
+    const ctx = document.getElementById('fftChart').getContext('2d');
+    const fftChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Array.from({length: 22}, (_, i) => `F${i + 1}`),
+            datasets: [{
+                label: "Amplitude (dB)",
+                backgroundColor: "rgba(255, 87, 34, 0.7)",
+                borderColor: "rgba(255, 87, 34, 1)",
+                borderWidth: 1,
+                data: Array(22).fill(0)
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
+
+    function updateFFTChart(compressedData) {
+        fftChart.data.datasets[0].data = decompressFFT(compressedData);
+        fftChart.update();
+    }
+
+    const dummyFFT = [135,206,102,145,163,205,139,107,131,0,128,96,45,122,110,110,27,0,72,72,57,0]
+
+    updateFFTChart(dummyFFT);
+</script>

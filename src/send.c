@@ -11,21 +11,25 @@
 #include "../lib/peripherals/mic/inmp441.h"
 #include "../lib/processing/fft.h"
 #include "../lib/utils/encrypt.h"
+
 #ifndef USE_SCREEN
 #define screen_log(...)
 #else
 #include "../lib/peripherals/screen/logger.h"
 #endif
 
-// Dummy payload
+#define COMPRESSED_SIZE 22
+
+// === Structure du payload contenant les données FFT compressées ===
 static payload_t _payload = {
     .header = 0x01,
     .node_id = 0x0001,
     .timestamp = 0x00000001,
     .battery_level = 0x20,
     .temperature = 0x14,
-    .reduced_fft = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16}
+    .reduced_fft = {0}  // Initialisé à 0
 };
+
 static int32_t _count = 0;
 
 void send_task() {
@@ -37,30 +41,25 @@ void send_task() {
     lora_set_spreading_factor(SPREADING_FACTOR);
 
     while (1) {
-        // Generating random numbers
-        _payload.reduced_fft[0] = (uint8_t)(esp_random()%UINT8_MAX);
+        _payload.timestamp = esp_random();  // Génération d'un timestamp unique
+        _payload.battery_level = (uint8_t)esp_random();
 
-        
-        _payload.timestamp = esp_random();
-        _payload.temperature = (uint8_t)(esp_random()%UINT8_MAX);
-
+        // Envoyer les données compressées
         esp_err_t err = lora_send_packet((uint8_t*)(&_payload), sizeof(payload_t));
 
         if (err == ESP_OK) {
-            printf("LoRa: Payload Sent\n");
+            // printf("LoRa: Payload Sent\n");
             screen_log("[%d]LoRa: send", _count);
         } else {
             printf("LoRa: Failed to Send Payload\n");
             screen_log("LoRa: FAILED");
         }
-        // ToA = 0.7 seconds -> 10% duty cycle for 433 MHz
+
+        // ToA = 0.7 secondes -> 10% duty cycle pour 433 MHz
         vTaskDelay(7000 / portTICK_PERIOD_MS);
         _count++;
     }
 }
-
-#define COMPRESSED_SIZE 22
-
 
 void compute_fft_task() {
     esp_task_wdt_delete(NULL);
@@ -69,7 +68,7 @@ void compute_fft_task() {
     float magnitude_data[N_SAMPLES / 2];
     uint8_t compressed_data[COMPRESSED_SIZE];
 
-    // Initialize microphone and FFT
+    // Initialisation du microphone et FFT
     inmp_init(GPIO_SCK, GPIO_SD, GPIO_WS, SAMPLE_RATE);
     fft_init(N_SAMPLES);
 
@@ -78,18 +77,21 @@ void compute_fft_task() {
         size_t num_samples = bytes / sizeof(int16_t);
 
         if (num_samples == N_SAMPLES) {
-            fft_process(raw_data_buffer, num_samples, magnitude_data); // Perform FFT on the data and store the magnitude
+            // Calcul de la FFT et stockage du spectre de magnitude
+            fft_process(raw_data_buffer, num_samples, magnitude_data);
 
             // Compression FFT (22 octets)
             compress_fft(magnitude_data, num_samples / 2, compressed_data, COMPRESSED_SIZE);
 
-            // Envoi des données compressées
             send_compressed_fft_data(compressed_data, COMPRESSED_SIZE);
+
+            // Mise à jour du payload LoRa avec la FFT compressée
+            memcpy(_payload.reduced_fft, compressed_data, COMPRESSED_SIZE);
         } else {
             printf("Insufficient data for FFT: %zu samples\n", num_samples);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(10)); // Delay to prevent continuous output
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -117,7 +119,7 @@ void test_encryption_task() {
         }
 
         if (decrypt_message(encrypted_data, encrypted_len, decrypted_data, &decrypted_len) == 0) {
-            decrypted_data[decrypted_len] = '\0'; // \0 end the message
+            decrypted_data[decrypted_len] = '\0'; // Terminaison de chaîne
             printf("[Encryption test] Decrypted Message: %s\n", decrypted_data);
         } else {
             printf("[Encryption test] Decryption failed\n");

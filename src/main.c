@@ -30,7 +30,7 @@ void app_main() {
     #else
     screen_log("Mode: Node");
     xTaskCreate(compute_fft_task, "compute_fft_task", 12000, NULL, 5, NULL);
-    // xTaskCreate(send_task, "send_task", 4000, NULL, 5, NULL); 
+    xTaskCreate(send_task, "send_task", 4000, NULL, 5, NULL); 
     #endif
 
     // Encryption
