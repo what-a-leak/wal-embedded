@@ -20,6 +20,8 @@
 
 #define COMPRESSED_SIZE 22
 
+static uint8_t battery = 255;
+
 // === Structure du payload contenant les données FFT compressées ===
 static payload_t _payload = {
     .header = 0x01,
@@ -42,7 +44,7 @@ void send_task() {
 
     while (1) {
         _payload.timestamp = esp_random();  // Génération d'un timestamp unique
-        _payload.battery_level = (uint8_t)esp_random();
+        _payload.battery_level = (uint8_t)battery;
 
         // Envoyer les données compressées
         esp_err_t err = lora_send_packet((uint8_t*)(&_payload), sizeof(payload_t));
@@ -58,6 +60,7 @@ void send_task() {
         // ToA = 0.7 secondes -> 10% duty cycle pour 433 MHz
         vTaskDelay(7000 / portTICK_PERIOD_MS);
         _count++;
+        battery = battery==0 ? 255 : battery-1;
     }
 }
 

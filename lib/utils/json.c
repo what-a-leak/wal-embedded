@@ -5,8 +5,21 @@ static char _json[128];
 
 char *json_get(payload_t p)
 {
-    sprintf(_json, "{\"node_id\": %d,\"mesure\": %d,\"timestamp\": %ld,\"batterie\": %d,\"temperature\": %d}", p.node_id, p.reduced_fft[0], p.timestamp, p.battery_level,
-            p.temperature);
+    char temp[4];
+    char measure_str[128];
+    for (int i = 0; i < 20; i++)
+    {
+        sprintf(temp, "%d%c", p.reduced_fft[i], i == 19 ? 0 : ',');
+        strcat(measure_str, temp);
+    }
+
+    sprintf(_json, "{\"node_id\": %d,\"mesure\": \"%s\", \"status\": %d,\"timestamp\": %ld,\"batterie\": %d,\"temperature\": %d}"
+    , p.node_id
+    , measure_str
+    , (p.reduced_fft[11] > 140)
+    , p.timestamp
+    , p.battery_level
+    , p.temperature);
     return _json;
 }
 
