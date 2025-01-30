@@ -38,9 +38,12 @@ void send_task() {
 
     while (1) {
         // Generating random numbers
-        _payload.timestamp = esp_random();
         _payload.reduced_fft[0] = (uint8_t)(esp_random()%UINT8_MAX);
+
+        
+        _payload.timestamp = esp_random();
         _payload.temperature = (uint8_t)(esp_random()%UINT8_MAX);
+
         esp_err_t err = lora_send_packet((uint8_t*)(&_payload), sizeof(payload_t));
 
         if (err == ESP_OK) {
@@ -56,12 +59,15 @@ void send_task() {
     }
 }
 
+#define COMPRESSED_SIZE 22
+
+
 void compute_fft_task() {
     esp_task_wdt_delete(NULL);
 
     int16_t raw_data_buffer[N_SAMPLES];
     float magnitude_data[N_SAMPLES / 2];
-    uint8_t decimated_output_data[20];
+    uint8_t compressed_data[COMPRESSED_SIZE];
 
     // Initialize microphone and FFT
     inmp_init(GPIO_SCK, GPIO_SD, GPIO_WS, SAMPLE_RATE);
@@ -73,10 +79,12 @@ void compute_fft_task() {
 
         if (num_samples == N_SAMPLES) {
             fft_process(raw_data_buffer, num_samples, magnitude_data); // Perform FFT on the data and store the magnitude
-            compress_fft(magnitude_data, num_samples / 2, decimated_output_data, 20); // Compress the magnitude data
-            send_compressed_fft_data(decimated_output_data, 20); // Send the compressed data
-            
-            // send_fft_data(magnitude_data, num_samples / 2);
+
+            // Compression FFT (22 octets)
+            compress_fft(magnitude_data, num_samples / 2, compressed_data, COMPRESSED_SIZE);
+
+            // Envoi des données compressées
+            send_compressed_fft_data(compressed_data, COMPRESSED_SIZE);
         } else {
             printf("Insufficient data for FFT: %zu samples\n", num_samples);
         }

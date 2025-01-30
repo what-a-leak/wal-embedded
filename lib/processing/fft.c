@@ -51,45 +51,41 @@ void send_fft_data(const float *fft_data, size_t num_samples) {
 
 #include <stdint.h>
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 
+#define COMPRESSED_SIZE 22
+
 void compress_fft(const float *fft_data, size_t num_samples, uint8_t *compressed_data, size_t compressed_size) {
-    // Vérifiez que compressed_size est suffisant pour encoder les données
-    if (compressed_size < 2) {
-        return; // Trop petit pour stocker quoi que ce soit
+    if (compressed_size != COMPRESSED_SIZE) {
+        return;  // Assurez-vous que la taille est correcte
     }
 
-    // Calcul des valeurs minimales et maximales pour normaliser
-    float min_val = FLT_MAX;
-    float max_val = -FLT_MAX;
-    for (size_t i = 0; i < num_samples; i++) {
-        if (fft_data[i] < min_val) min_val = fft_data[i];
-        if (fft_data[i] > max_val) max_val = fft_data[i];
+    // Trouver la valeur maximale pour la normalisation
+    float max_val = -INFINITY;
+    for (size_t i = 0; i < num_samples / 2; i++) {
+        if (fft_data[i] > max_val) {
+            max_val = fft_data[i];
+        }
+    }
+    
+    // Éviter la division par zéro
+    if (max_val < 1e-6) {
+        max_val = 1e-6;
     }
 
-    // Encode l'échelle (min et max) dans les deux premiers octets
-    compressed_data[0] = (uint8_t)((min_val + 128) * 2); // Assure la conversion en plage [0-255]
-    compressed_data[1] = (uint8_t)((max_val + 128) * 2);
-
-    // Compression des données FFT restantes
-    for (size_t i = 0; i < compressed_size - 2; i++) {
-        size_t index = i * num_samples / (compressed_size - 2); // Rééchantillonnage
-        float normalized_value = (fft_data[index] - min_val) / (max_val - min_val); // Normalisation [0-1]
-        compressed_data[i + 2] = (uint8_t)(normalized_value * 255); // Compression dans [0-255]
+    // Compression avec quantification logarithmique sur 8 bits
+    for (size_t i = 0; i < COMPRESSED_SIZE; i++) {
+        size_t index = (i * (num_samples / 2)) / COMPRESSED_SIZE;  // Sélectionner des points représentatifs
+        float norm_value = fft_data[index] / max_val;  // Normaliser entre 0 et 1
+        norm_value = log1p(norm_value) / log1p(1.0);   // Appliquer une échelle logarithmique
+        compressed_data[i] = (uint8_t)(norm_value * 255.0);  // Quantifier sur 8 bits
     }
 }
 
-
 void send_compressed_fft_data(const uint8_t *compressed_data, size_t compressed_size) {
-    // Convertir les données compressées en une chaîne de caractères hexadécimaux
-    char buffer[compressed_size * 2 + 2];
     for (size_t i = 0; i < compressed_size; i++) {
-        snprintf(&buffer[i * 2], 3, "%02X", compressed_data[i]);
+        printf("%u,", compressed_data[i]);
     }
-
-    // Ajouter une fin de ligne pour délimiter les messages
-    strcat(buffer, "\n");
-
-    // Envoyer les données sur la sortie série (exemple)
-    printf("%s", buffer);
+    printf("\n");
 }

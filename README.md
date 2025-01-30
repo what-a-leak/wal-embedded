@@ -7,8 +7,8 @@ EPS32C3 based node embedded software for What a Leak project.
 
 - [x] Gather raw microphone data
 - [x] Perform FFT on microphone data
-- [ ] Construct Payload
-- [ ] Transmit Payload via LoRa
+- [x] Construct Payload
+- [x] Transmit Payload via LoRa
 
 ## Choose the mode of the node
 
